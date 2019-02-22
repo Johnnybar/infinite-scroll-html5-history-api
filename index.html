@@ -1,0 +1,245 @@
+
+<main>
+	<h1>Infinite Scroll, Pagination and HTML5 History API</h1>
+	<p>Using <a href="https://twitter.com/TimSeverien">@TimSeverien's</a> Infinite Scroll + Pagination <a href="https://codepen.io/timseverien/pen/XXYaZe">Experiment</a>, I added a function that reflects the current page in the URL. Came up with a semi-primitive solution but it works:)</p>
+	<p>May be beneficial for SEO usage on single-page websites, as content is loaded while scrolling but the appearance is single-page</p>
+
+	<div class="article-list" id="article-list"></div>
+	<ul class="article-list__pagination article-list__pagination--inactive" id="article-list-pagination"></ul>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</main>
+
+
+<script>
+function getPageId(n) {
+	return 'article-page-' + n;
+}
+
+function getDocumentHeight() {
+	const body = document.body;
+	const html = document.documentElement;
+
+	return Math.max(
+		body.scrollHeight, body.offsetHeight,
+		html.clientHeight, html.scrollHeight, html.offsetHeight
+	);
+};
+
+function getScrollTop() {
+	return (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+}
+
+function getArticleImage() {
+	const hash = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)-200;
+	const image = new Image;
+	image.className = 'article-list__item__image article-list__item__image--loading';
+	image.src = "http://lorempixel.com/320/320/?random=" + hash;
+
+	image.onload = function() {
+		image.classList.remove('article-list__item__image--loading');
+	};
+
+	return image;
+}
+
+function getArticle() {
+	const articleImage = getArticleImage();
+	const article = document.createElement('article');
+	article.className = 'article-list__item';
+	article.appendChild(articleImage);
+
+	return article;
+}
+
+function getArticlePage(page, articlesPerPage = 16) {
+	const pageElement = document.createElement('div');
+	pageElement.id = getPageId(page);
+	pageElement.className = 'article-list__page';
+
+	while (articlesPerPage--) {
+		pageElement.appendChild(getArticle());
+	}
+
+	return pageElement;
+}
+
+function addPaginationPage(page) {
+	const pageLink = document.createElement('a');
+	pageLink.href = '#' + getPageId(page);
+	pageLink.innerHTML = page;
+	pageLink.id = 'page-'+ page
+
+	const listItem = document.createElement('li');
+	listItem.className = 'article-list__pagination__item';
+	listItem.appendChild(pageLink);
+
+	articleListPagination.appendChild(listItem);
+
+	if (page === 2) {
+		articleListPagination.classList.remove('article-list__pagination--inactive');
+	}
+}
+
+function fetchPage(page) {
+	articleList.appendChild(getArticlePage(page));
+}
+
+let pagesList = {}
+function addToPagesList(page, scrollPosition){
+	pagesList[page] = scrollPosition
+}
+function addPage(page) {
+	fetchPage(page);
+	addPaginationPage(page);
+	if(page>=1){
+	addToPagesList(page, getScrollTop())
+}
+}
+
+const articleList = document.getElementById('article-list');
+const articleListPagination = document.getElementById('article-list-pagination');
+let page = 0;
+
+addPage(++page);
+
+window.onscroll = function() {
+for (let prop in pagesList){
+	//if scrolling position is within this range, change URL to respective page bumber
+	if(getScrollTop() >= pagesList[prop] - 50 && getScrollTop()<= pagesList[prop] + 50){
+		url = 'page-' + prop+  ".html";
+	  history.pushState(null, null, url);
+	}
+}
+// load new page and change URL
+	if (getScrollTop() < getDocumentHeight() - window.innerHeight) return;
+	url = 'page-' + page +  ".html";
+	history.pushState(null, null, url);
+	addPage(++page);
+};
+
+</script>
+
+<style>
+$animation-duration: .2s;
+
+body {
+	background-color: #f8f8f8;
+	color: #333;
+	counter-reset: page;
+
+	-webkit-font-smoothing: antialiased;
+	-moz-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-transform: uppercase;
+}
+
+a {
+	$color: #28f;
+	color: $color;
+	text-decoration: none;
+
+	&:hover, &:focus {
+		color: darken($color, 15%);
+	}
+	&:active {
+		color: darken($color, 30%);
+	}
+}
+
+main {
+	margin: 0 auto;
+	max-width: 30em;
+	padding: 1em;
+}
+
+.article-list__page {
+	border-top: 1px solid #ddd;
+	clear: both;
+	counter-increment: page;
+	padding-bottom: 3em;
+	position: relative;
+
+	&:before {
+		background-color: #ddd;
+		display: inline-block;
+		content: counter(page);
+		color: #888;
+		padding: .25em .5em;
+		position: absolute;
+		left: calc(50% - .75em);
+		top: -.75em;
+		vertical-align: middle;
+		z-index: 1;
+	}
+}
+
+.article-list__item {
+	background-color: #eee;
+	float: left;
+	height: 15em;
+	max-width: 50%;
+	opacity: .75;
+	transform: scale(.8);
+	transition: opacity $animation-duration, transform $animation-duration;
+	width: 15em;
+
+	&:hover {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.article-list__item__image {
+	display: block;
+	height: auto;
+	margin: 0;
+	opacity: 1;
+	transition: opacity $animation-duration;
+	width: 100%;
+}
+
+.article-list__item__image--loading {
+	opacity: 0;
+}
+
+.article-list__pagination {
+	background-color: #222;
+	box-shadow: 0 0 1em rgba(#000, .25);
+	display: block;
+	bottom: 0;
+	left: 0;
+	list-style-type: none;
+	margin: 0;
+	padding: .5em;
+	position: fixed;
+	right: 0;
+	text-align: center;
+	transform: translateY(0);
+	transition: transform $animation-duration;
+	z-index: 2;
+}
+
+.article-list__pagination--inactive {
+	transform: translateY(100%);
+}
+
+.article-list__pagination__item {
+	display: inline-block;
+	margin: 0 1em;
+
+	a {
+		$color: #888;
+		color: $color;
+		text-decoration: none;
+
+		&:hover, &:focus {
+			color: lighten($color, 15%);
+		}
+		&:active {
+			color: lighten($color, 30%);
+		}
+	}
+}
+</style>
