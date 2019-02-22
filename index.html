@@ -101,18 +101,33 @@ const articleListPagination = document.getElementById('article-list-pagination')
 let page = 0;
 
 addPage(++page);
-
+const sectionsObj ={
+	"1": "Home",
+	"2": "Our-Products",
+	"3": "Testimonials",
+	"4": "Portfolio",
+	"5": "About-Us",
+	"6": "Contact",
+	"7": "Legal-Compliance",
+	"1": "Home",
+	"2": "Our-Products",
+	"3": "Testimonials",
+	"4": "Portfolio",
+	"5": "About-Us",
+	"6": "Contact",
+	"7": "Legal-Compliance"
+}
 window.onscroll = function() {
 for (let prop in pagesList){
 	//if scrolling position is within this range, change URL to respective page bumber
 	if(getScrollTop() >= pagesList[prop] - 50 && getScrollTop()<= pagesList[prop] + 50){
-		url = 'page-' + prop+  ".html";
+		url = sectionsObj[prop]+  ".html";
 	  history.pushState(null, null, url);
 	}
 }
 // load new page and change URL
 	if (getScrollTop() < getDocumentHeight() - window.innerHeight) return;
-	url = 'page-' + page +  ".html";
+	url = sectionsObj[prop] +  ".html";
 	history.pushState(null, null, url);
 	addPage(++page);
 };
