@@ -120,21 +120,27 @@
 		"14": "Legal-Compliance"
 	}
 	window.onscroll = function() {
+
 		for (let prop in pagesList) {
 			//if scrolling position is within this range, change URL to respective page bumber
 			if (getScrollTop() >= pagesList[prop] - 50 && getScrollTop() <= pagesList[prop] + 50) {
 				url = sectionsObj[prop] + ".html";
-				history.pushState(null, null, url);
+				if (location.origin !== 'file://') {
+					history.pushState(null, null, url);
+				}
 			}
 		}
 		// load new page and change URL
 		if (getScrollTop() < getDocumentHeight() - window.innerHeight) return;
 		url = sectionsObj[page] + ".html";
-		history.pushState(null, null, url);
+		if (location.origin !== 'file://') {
+			history.pushState(null, null, url);
+		}
 		//limiting the number of pages to the number of sections
 		if (page < 14) {
 			addPage(++page);
 		}
+
 	};
 </script>
 
