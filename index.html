@@ -127,7 +127,7 @@ for (let prop in pagesList){
 }
 // load new page and change URL
 	if (getScrollTop() < getDocumentHeight() - window.innerHeight) return;
-	url = sectionsObj[prop] +  ".html";
+	url = sectionsObj[page] +  ".html";
 	history.pushState(null, null, url);
 	addPage(++page);
 };
